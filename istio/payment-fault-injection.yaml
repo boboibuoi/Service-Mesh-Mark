@@ -1,0 +1,20 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: payment-service-fault-demo
+spec:
+  hosts:
+    - payment-service
+  gateways:
+    - mesh
+  http:
+    - fault:
+        delay:
+          percentage:
+            value: 30
+          fixedDelay: 2s
+      route:
+        - destination:
+            host: payment-service
+            port:
+              number: 8002

@@ -1,0 +1,52 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: product-service
+  labels:
+    app: product-service
+    app.kubernetes.io/name: product-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: product-service
+  template:
+    metadata:
+      labels:
+        app: product-service
+        app.kubernetes.io/name: product-service
+    spec:
+      containers:
+        - name: product-service
+          image: service-mesh-observability-demo/product-service:v1.0.0-demo
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8004
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8004
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: product-service
+  labels:
+    app: product-service
+    app.kubernetes.io/name: product-service
+spec:
+  selector:
+    app: product-service
+  ports:
+    - name: http
+      port: 8004
+      targetPort: 8004
+

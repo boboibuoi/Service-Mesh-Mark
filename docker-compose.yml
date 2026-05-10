@@ -1,0 +1,50 @@
+﻿services:
+  frontend:
+    build: ./frontend
+    image: service-mesh-observability-demo/frontend:v1.0.0-demo
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - product-service
+      - order-service
+
+  product-service:
+    build: ./product-service
+    image: service-mesh-observability-demo/product-service:v1.0.0-demo
+    container_name: product-service
+    environment:
+      FRONTEND_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+    ports:
+      - "8004:8004"
+
+  order-service:
+    build: ./order-service
+    image: service-mesh-observability-demo/order-service:v1.0.0-demo
+    container_name: order-service
+    environment:
+      PRODUCT_SERVICE_URL: http://product-service:8004
+      PAYMENT_SERVICE_URL: http://payment-service:8002
+      NOTIFICATION_SERVICE_URL: http://notification-service:8003
+      FRONTEND_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+    ports:
+      - "8001:8001"
+    depends_on:
+      - product-service
+      - payment-service
+      - notification-service
+
+  payment-service:
+    build: ./payment-service
+    image: service-mesh-observability-demo/payment-service:v1.0.0-demo
+    container_name: payment-service
+    ports:
+      - "8002:8002"
+
+  notification-service:
+    build: ./notification-service
+    image: service-mesh-observability-demo/notification-service:v1.0.0-demo
+    container_name: notification-service
+    ports:
+      - "8003:8003"
+
