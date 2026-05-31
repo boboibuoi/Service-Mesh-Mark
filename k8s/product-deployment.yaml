@@ -22,6 +22,9 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8004
+          env:
+            - name: FRONTEND_ORIGINS
+              value: http://localhost:8080,http://127.0.0.1:8080,http://localhost:18080,http://127.0.0.1:18080
           readinessProbe:
             httpGet:
               path: /health

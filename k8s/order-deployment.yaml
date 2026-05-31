@@ -23,6 +23,8 @@ spec:
           ports:
             - containerPort: 8001
           env:
+            - name: FRONTEND_ORIGINS
+              value: http://localhost:8080,http://127.0.0.1:8080,http://localhost:18080,http://127.0.0.1:18080
             - name: PRODUCT_SERVICE_URL
               value: http://product-service:8004
             - name: PAYMENT_SERVICE_URL
