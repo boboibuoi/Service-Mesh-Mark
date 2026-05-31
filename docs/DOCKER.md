@@ -43,3 +43,6 @@ docker run --rm --name frontend -p 8080:80 service-mesh-observability-demo/front
 ```bash
 docker compose up --build
 ```
+
+Run this without `-d` when you want the stack to keep running in the terminal until you stop it manually.
+The `-d` flag starts Compose in detached mode, so the command returns right away.

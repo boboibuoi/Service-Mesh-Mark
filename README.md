@@ -66,6 +66,9 @@ More details are in [docs/API.md](docs/API.md).
 docker compose up --build
 ```
 
+Use this foreground form if you want the terminal to stay attached until you stop it with `Ctrl+C`.
+If you run `docker compose up -d --build`, Compose detaches immediately and the command exits by design.
+
 Open the demo UI:
 
 ```text

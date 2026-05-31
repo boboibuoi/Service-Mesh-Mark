@@ -5,6 +5,7 @@
     container_name: frontend
     ports:
       - "8080:80"
+      - "18080:80"
     depends_on:
       - product-service
       - order-service
@@ -14,7 +15,7 @@
     image: service-mesh-observability-demo/product-service:v1.0.0-demo
     container_name: product-service
     environment:
-      FRONTEND_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      FRONTEND_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:18080,http://127.0.0.1:18080
     ports:
       - "8004:8004"
 
@@ -26,7 +27,7 @@
       PRODUCT_SERVICE_URL: http://product-service:8004
       PAYMENT_SERVICE_URL: http://payment-service:8002
       NOTIFICATION_SERVICE_URL: http://notification-service:8003
-      FRONTEND_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+      FRONTEND_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:18080,http://127.0.0.1:18080
     ports:
       - "8001:8001"
     depends_on:
