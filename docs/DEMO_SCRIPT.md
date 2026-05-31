@@ -143,6 +143,8 @@ Evidence to show:
 
 ## 8. Scaling
 
+Note: `http://127.0.0.1:18080` is the Docker Compose frontend in this repo. If you need Kiali graph data for the `shopping-demo` mesh, use the Istio ingress gateway on `http://127.0.0.1:18081` so the traffic actually enters the Kubernetes mesh.
+
 ```powershell
 kubectl scale -n shopping-demo deployment/order-service deployment/product-service deployment/payment-service deployment/notification-service --replicas=1
 docker run --rm `

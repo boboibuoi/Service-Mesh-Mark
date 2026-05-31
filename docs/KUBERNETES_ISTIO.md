@@ -118,6 +118,8 @@ Open access with Kind:
 kubectl port-forward -n istio-system svc/istio-ingressgateway 18080:80
 ```
 
+If the Docker Compose frontend is already using `18080`, use `18081:80` for the mesh port-forward instead so Kiali can see traffic in `shopping-demo`.
+
 Open access with Minikube:
 
 ```bash
