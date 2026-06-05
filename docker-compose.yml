@@ -1,7 +1,7 @@
-﻿services:
+services:
   frontend:
     build: ./frontend
-    image: service-mesh-observability-demo/frontend:v1.0.0-demo
+    image: meshmart-service-mesh/frontend:v1.0.0
     container_name: frontend
     ports:
       - "8080:80"
@@ -12,7 +12,7 @@
 
   product-service:
     build: ./product-service
-    image: service-mesh-observability-demo/product-service:v1.0.0-demo
+    image: meshmart-service-mesh/product-service:v1.0.0
     container_name: product-service
     environment:
       FRONTEND_ORIGINS: http://localhost:8080,http://127.0.0.1:8080,http://localhost:18080,http://127.0.0.1:18080
@@ -21,7 +21,7 @@
 
   order-service:
     build: ./order-service
-    image: service-mesh-observability-demo/order-service:v1.0.0-demo
+    image: meshmart-service-mesh/order-service:v1.0.0
     container_name: order-service
     environment:
       PRODUCT_SERVICE_URL: http://product-service:8004
@@ -37,15 +37,47 @@
 
   payment-service:
     build: ./payment-service
-    image: service-mesh-observability-demo/payment-service:v1.0.0-demo
+    image: meshmart-service-mesh/payment-service:v1.0.0
     container_name: payment-service
     ports:
       - "8002:8002"
 
   notification-service:
     build: ./notification-service
-    image: service-mesh-observability-demo/notification-service:v1.0.0-demo
+    image: meshmart-service-mesh/notification-service:v1.0.0
     container_name: notification-service
     ports:
       - "8003:8003"
 
+  # ── Local Prometheus (scrapes application /metrics endpoints) ──────────────
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: meshmart-prometheus
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - order-service
+      - product-service
+      - payment-service
+      - notification-service
+    restart: unless-stopped
+
+  # ── Local Grafana (auto-loads datasource + dashboards) ────────────────────
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: meshmart-grafana
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+      GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped

@@ -9,8 +9,12 @@ export const options = {
 const baseUrl = __ENV.BASE_URL || "http://localhost:8080";
 
 export function setup() {
+  if (__ENV.PRODUCT_IDS) {
+    return { productIds: __ENV.PRODUCT_IDS.split(",").map((item) => item.trim()).filter(Boolean) };
+  }
+
   if (__ENV.PRODUCT_ID) {
-    return { productId: __ENV.PRODUCT_ID };
+    return { productIds: [__ENV.PRODUCT_ID] };
   }
 
   const response = http.get(`${baseUrl}/products`);
@@ -23,21 +27,25 @@ export function setup() {
     throw new Error("Product list is empty");
   }
 
-  return { productId: products[0].id };
+  return { productIds: products.slice(0, 2).map((product) => product.id) };
 }
 
 export default function (data) {
   const payload = JSON.stringify({
     user_id: __ENV.USER_ID || `load-user-${__VU}-${__ITER}`,
-    product_id: data.productId,
-    quantity: Number(__ENV.QUANTITY || 1),
+    items: data.productIds.map((productId) => ({
+      product_id: productId,
+      quantity: Number(__ENV.QUANTITY || 1),
+    })),
     payment_mode: __ENV.PAYMENT_MODE || "success",
   });
 
+  const requestId = `load-req-${__VU}-${__ITER}-${Date.now()}`;
   const response = http.post(`${baseUrl}/orders`, payload, {
     headers: {
       "Content-Type": "application/json",
       "Idempotency-Key": __ENV.IDEMPOTENCY_KEY || `load-${__VU}-${__ITER}-${Date.now()}`,
+      "X-Request-Id": requestId,
     },
   });
 

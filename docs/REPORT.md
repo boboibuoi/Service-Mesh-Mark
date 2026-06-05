@@ -2,11 +2,11 @@
 
 ## 1. Project Introduction
 
-This project implements a resilient e-commerce microservices demo using Kubernetes, Istio service mesh, and observability tools.
+This project implements a resilient e-commerce microservices platform using Kubernetes, Istio service mesh, and observability tools.
 
 Problem:
 
-Microservice systems are vulnerable to partial failures, slow upstream services, duplicate client retries, and poor visibility across service boundaries. The project demonstrates how a service mesh and clear API design improve reliability and debuggability.
+Microservice systems are vulnerable to partial failures, slow upstream services, duplicate client retries, and poor visibility across service boundaries. The project shows how a service mesh and clear API design improve reliability and debuggability.
 
 ## 2. Related Systems
 
@@ -34,7 +34,7 @@ Services:
 - `order-service`: orchestration service and idempotent order creation.
 - `payment-service`: success, failure, and delay simulation.
 - `notification-service`: notification side effect.
-- `frontend`: simple UI for the demo.
+- `frontend`: frontend web experience.
 
 ## 4. Key Design Choices
 
@@ -44,7 +44,7 @@ Istio Gateway and VirtualService route external traffic without adding routing l
 
 ### Timeout, Retry, And Circuit Breaker
 
-Payment Service can be slow or fail. Istio policies demonstrate timeout and retry behavior while DestinationRule adds basic circuit breaker settings.
+Payment Service can be slow or fail. Istio policies show timeout and retry behavior while DestinationRule adds basic circuit breaker settings.
 
 ### Idempotent Order Creation
 
@@ -52,7 +52,7 @@ Payment Service can be slow or fail. Istio policies demonstrate timeout and retr
 
 ### Observability First
 
-Metrics, traces, and service graph are part of the demo, not afterthoughts. They are used to explain normal flow, failure, and scaling behavior.
+Metrics, traces, and service graph are part of the system, not afterthoughts. They are used to explain normal flow, failure, and scaling behavior.
 
 ## 5. Key Code To Show
 
@@ -61,7 +61,7 @@ Recommended code walkthrough:
 - [order-service/main.py](../order-service/main.py): `create_order`, idempotency logic, service-to-service calls.
 - [istio/virtual-service.yaml](../istio/virtual-service.yaml): Gateway routing, retry, timeout.
 - [istio/destination-rule.yaml](../istio/destination-rule.yaml): connection pool and outlier detection.
-- [scripts/demo.ps1](../scripts/demo.ps1): repeatable evidence generation.
+- [scripts/evidence-run.ps1](../scripts/evidence-run.ps1): repeatable evidence generation.
 
 ## 6. Evaluation
 
@@ -86,4 +86,4 @@ Summary:
 
 ## 8. Conclusion
 
-The project demonstrates a practical distributed system with service decomposition, service mesh traffic management, failure handling, observability, and scalability evaluation.
+The project shows a practical distributed system with service decomposition, service mesh traffic management, failure handling, observability, and scalability evaluation.

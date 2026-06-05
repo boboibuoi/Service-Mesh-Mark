@@ -1,0 +1,97 @@
+flowchart TB
+  %% Colors & Styles
+  classDef client fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a
+  classDef mesh fill:#ecfdf5,stroke:#059669,stroke-width:2px,color:#064e3b
+  classDef service fill:#f8fafc,stroke:#64748b,stroke-width:2px,color:#0f172a
+  classDef proxy fill:#f472b6,stroke:#db2777,stroke-width:1px,color:#831843
+  classDef control fill:#fae8ff,stroke:#c084fc,stroke-width:2px,color:#581c87
+  classDef obs fill:#fff7ed,stroke:#ea580c,stroke-width:2px,color:#7c2d12
+  
+  %% Elements
+  CLIENT["Client <br/> (Browser / Postman)"]:::client
+  
+  subgraph K8S["Kubernetes Cluster (Namespace: meshmart)"]
+    INGRESS["Istio Ingress Gateway"]:::control
+    
+    subgraph DATA_PLANE["Data Plane (Envoy Sidecar Mesh)"]
+      subgraph POD_FRONTEND["Frontend Pod"]
+        FRONTEND["Frontend App <br/> (Nginx :80)"]:::service
+        PROXY_FRONTEND["Envoy Sidecar"]:::proxy
+      end
+      
+      subgraph POD_PRODUCT["Product Service Pod"]
+        PRODUCT["Product Service <br/> (FastAPI :8004)"]:::service
+        PROXY_PRODUCT["Envoy Sidecar"]:::proxy
+      end
+      
+      subgraph POD_ORDER["Order Service Pod"]
+        ORDER["Order Service <br/> (FastAPI :8001)"]:::service
+        PROXY_ORDER["Envoy Sidecar"]:::proxy
+      end
+      
+      subgraph POD_PAYMENT["Payment Service Pod"]
+        PAYMENT["Payment Service <br/> (FastAPI :8002)"]:::service
+        PROXY_PAYMENT["Envoy Sidecar"]:::proxy
+      end
+      
+      subgraph POD_NOTIFY["Notification Service Pod"]
+        NOTIFY["Notification Service <br/> (FastAPI :8003)"]:::service
+        PROXY_NOTIFY["Envoy Sidecar"]:::proxy
+      end
+    end
+    
+    subgraph CONTROL_PLANE["Istio Control Plane"]
+      ISTIOD["istiod"]:::control
+    end
+  end
+  
+  subgraph OBS_STACK["Observability Stack"]
+    PROM["Prometheus <br/> (Metrics Store)"]:::obs
+    GRAF["Grafana <br/> (Dashboards)"]:::obs
+    JAEGER["Jaeger <br/> (Tracing)"]:::obs
+    KIALI["Kiali <br/> (Service Graph)"]:::obs
+  end
+
+  %% Links
+  CLIENT -->|"HTTP/HTTPS"| INGRESS
+  
+  %% Ingress Routing
+  INGRESS -->|"/"| PROXY_FRONTEND --> FRONTEND
+  INGRESS -->|"/products"| PROXY_PRODUCT --> PRODUCT
+  INGRESS -->|"/orders"| PROXY_ORDER --> ORDER
+  INGRESS -->|"/payments"| PROXY_PAYMENT --> PAYMENT
+  INGRESS -->|"/notifications"| PROXY_NOTIFY --> NOTIFY
+  
+  %% Inter-service Traffic
+  PROXY_ORDER ==>|"POST /inventory/reserve <br/> POST /inventory/commit <br/> POST /inventory/release"| PROXY_PRODUCT
+  PROXY_ORDER ==>|"POST /payments"| PROXY_PAYMENT
+  PROXY_ORDER ==>|"POST /notifications"| PROXY_NOTIFY
+  
+  %% Reviews Call from Browser
+  PROXY_FRONTEND -.->|"GET/POST /products/{id}/reviews"| PROXY_PRODUCT
+  
+  %% Control Plane
+  ISTIOD -.->|"Config Push (xDS)"| PROXY_FRONTEND
+  ISTIOD -.->|"Config Push (xDS)"| PROXY_PRODUCT
+  ISTIOD -.->|"Config Push (xDS)"| PROXY_ORDER
+  ISTIOD -.->|"Config Push (xDS)"| PROXY_PAYMENT
+  ISTIOD -.->|"Config Push (xDS)"| PROXY_NOTIFY
+
+  %% Telemetry Metrics
+  PROXY_FRONTEND -. "metrics" .-> PROM
+  PROXY_PRODUCT -. "metrics" .-> PROM
+  PROXY_ORDER -. "metrics" .-> PROM
+  PROXY_PAYMENT -. "metrics" .-> PROM
+  PROXY_NOTIFY -. "metrics" .-> PROM
+  
+  %% Telemetry Traces
+  PROXY_FRONTEND -. "traces (zipkin)" .-> JAEGER
+  PROXY_PRODUCT -. "traces (zipkin)" .-> JAEGER
+  PROXY_ORDER -. "traces (zipkin)" .-> JAEGER
+  PROXY_PAYMENT -. "traces (zipkin)" .-> JAEGER
+  PROXY_NOTIFY -. "traces (zipkin)" .-> JAEGER
+  
+  %% Observability Internal
+  PROM --> GRAF
+  PROM --> KIALI
+  JAEGER --> KIALI

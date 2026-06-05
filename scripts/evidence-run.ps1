@@ -1,9 +1,9 @@
 param(
     [string]$BaseUrl = "http://127.0.0.1:18080",
-    [string]$Namespace = "shopping-demo",
-    [string]$EvidenceDir = "demo-evidence",
+    [string]$Namespace = "meshmart",
+    [string]$EvidenceDir = "evidence",
     [switch]$RunLoadTest,
-    [switch]$RunScalingDemo
+    [switch]$RunScalingScenario
 )
 
 $ErrorActionPreference = "Stop"
@@ -22,7 +22,7 @@ function Invoke-Order {
     )
 
     $payload = @{
-        user_id = if ($UserId) { $UserId } else { "demo-user-$([guid]::NewGuid().ToString('N').Substring(0, 8))" }
+        user_id = if ($UserId) { $UserId } else { "customer-001-$([guid]::NewGuid().ToString('N').Substring(0, 8))" }
         product_id = $ProductId
         quantity = 1
         payment_mode = $PaymentMode
@@ -43,7 +43,7 @@ function Get-HttpStatus {
 
 function Start-KindGatewayForward {
     if (-not (Test-Command "kubectl")) {
-        throw "kubectl is required for load/scaling demo port-forward"
+        throw "kubectl is required for load/scaling scenario port-forward"
     }
 
     $listener = Get-NetTCPConnection -LocalPort 18081 -State Listen -ErrorAction SilentlyContinue
@@ -53,8 +53,8 @@ function Start-KindGatewayForward {
 
     $tmp = Join-Path (Get-Location) ".tmp-kind"
     New-Item -ItemType Directory -Force -Path $tmp | Out-Null
-    $out = Join-Path $tmp "demo-ingress-18081.out.log"
-    $err = Join-Path $tmp "demo-ingress-18081.err.log"
+    $out = Join-Path $tmp "platform-ingress-18081.out.log"
+    $err = Join-Path $tmp "platform-ingress-18081.err.log"
     Start-Process -FilePath "kubectl" -ArgumentList @(
         "port-forward",
         "--address",
@@ -116,8 +116,8 @@ Write-Host "3. Payment failure order"
 $failedOrder = Invoke-Order -ProductId $product.id -PaymentMode "failed"
 Write-Host "   OK order=$($failedOrder.order_id) status=$($failedOrder.order_status)"
 
-Write-Host "4. Idempotency retry demo"
-$idempotencyKey = "demo-$([guid]::NewGuid().ToString('N'))"
+Write-Host "4. Idempotency retry"
+$idempotencyKey = "order-$([guid]::NewGuid().ToString('N'))"
 $idempotencyUserId = "idempotent-user-$([guid]::NewGuid().ToString('N').Substring(0, 8))"
 $idempotentOrderFirst = Invoke-Order -ProductId $product.id -PaymentMode "success" -IdempotencyKey $idempotencyKey -UserId $idempotencyUserId
 $idempotentOrderSecond = Invoke-Order -ProductId $product.id -PaymentMode "success" -IdempotencyKey $idempotencyKey -UserId $idempotencyUserId
@@ -126,7 +126,7 @@ if ($idempotentOrderFirst.order_id -ne $idempotentOrderSecond.order_id) {
 }
 Write-Host "   OK key=$idempotencyKey order=$($idempotentOrderFirst.order_id)"
 
-Write-Host "5. Payment timeout demo"
+Write-Host "5. Payment timeout scenario"
 $slowStatus = Get-HttpStatus "$BaseUrl/payment?mode=slow"
 Write-Host "   OK /payment?mode=slow returned HTTP $slowStatus"
 
@@ -149,23 +149,23 @@ try {
 
 $kubernetes = [ordered]@{}
 if (Test-Command "kubectl") {
-    $kubernetes.shopping_demo_pods = kubectl get pods -n $Namespace --no-headers
+    $kubernetes.meshmart_pods = kubectl get pods -n $Namespace --no-headers
     $kubernetes.istio_system_pods = kubectl get pods -n istio-system --no-headers
 }
 
 $load = [ordered]@{}
 if ($RunLoadTest) {
     Write-Host "6. k6 load test"
-    $load.normal = Invoke-K6 -Name "k6-demo"
+    $load.normal = Invoke-K6 -Name "k6-platform"
 }
 
 $scaling = [ordered]@{}
-if ($RunScalingDemo) {
+if ($RunScalingScenario) {
     if (-not (Test-Command "kubectl")) {
-        throw "kubectl is required for scaling demo"
+        throw "kubectl is required for scaling scenario"
     }
 
-    Write-Host "7. Scaling demo"
+    Write-Host "7. Scaling scenario"
     kubectl scale -n $Namespace deployment/order-service deployment/product-service deployment/payment-service deployment/notification-service --replicas=1 | Out-Host
     foreach ($deployment in @("order-service", "product-service", "payment-service", "notification-service")) {
         kubectl rollout status -n $Namespace deployment/$deployment --timeout=300s | Out-Host
@@ -197,7 +197,7 @@ $evidence = [ordered]@{
     scaling = $scaling
 }
 
-$evidencePath = Join-Path $EvidenceDir "demo-evidence-$(Get-Date -Format 'yyyyMMdd-HHmmss').json"
+$evidencePath = Join-Path $EvidenceDir "evidence-$(Get-Date -Format 'yyyyMMdd-HHmmss').json"
 $evidence | ConvertTo-Json -Depth 20 | Set-Content -Path $evidencePath -Encoding UTF8
 
 Write-Host "Evidence written to $evidencePath"

@@ -1,7 +1,7 @@
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: payment-service-fault-demo
+  name: payment-service-fault-scenario
 spec:
   hosts:
     - payment-service

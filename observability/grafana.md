@@ -13,7 +13,7 @@ Screenshots to capture for the report:
 
 - Request volume while k6 is running.
 - Request duration or p95 latency.
-- Error rate during the slow payment timeout demo.
+- Error rate during the slow payment timeout scenario.
 
 Recommended dashboard:
 

@@ -20,8 +20,8 @@ Client -> Istio Ingress Gateway -> order-service
 
 Expected services:
 
-- `order-service.shopping-demo`
-- `product-service.shopping-demo`
-- `payment-service.shopping-demo`
-- `notification-service.shopping-demo`
+- `order-service.meshmart`
+- `product-service.meshmart`
+- `payment-service.meshmart`
+- `notification-service.meshmart`
 - `istio-ingressgateway.istio-system`

@@ -1,4 +1,4 @@
-﻿# Kubernetes and Istio Runbook
+# Kubernetes and Istio Runbook
 
 ## 20/5 - Docker Compose
 
@@ -108,6 +108,7 @@ kubectl apply -f istio/virtual-service.yaml
 kubectl apply -f istio/destination-rule.yaml
 kubectl apply -f istio/payment-policy.yaml
 kubectl apply -f istio/telemetry-tracing.yaml
+kubectl apply -f istio/security.yaml
 ```
 
 `payment-fault-injection.yaml` is optional. Apply it only during the failure demo because it injects delay into live payment traffic.
@@ -183,6 +184,31 @@ Dashboard URLs:
 - Grafana: `http://127.0.0.1:13000`
 - Jaeger: `http://127.0.0.1:16686/jaeger/`
 - Kiali: `http://127.0.0.1:20001/kiali/`
+
+## Zero Trust Security (mTLS and Authorization Policies)
+
+MeshMart enforces a Zero Trust security model by requiring strict mTLS and least-privilege Authorization Policies.
+
+1. **Service Accounts**: Dedicated workload identities (`frontend`, `order-service`, `product-service`, `payment-service`, and `notification-service`) are used to specify pod identity.
+2. **STRICT mTLS**: Enforced namespace-wide in the `meshmart` namespace using a `PeerAuthentication` resource.
+3. **Authorization Policies**: Deny traffic by default, only allowing explicit, verified paths:
+   - Ingress gateway -> Frontend / Backend services (GET/POST/etc.)
+   - Frontend -> Backend microservices
+   - `order-service` -> `product-service`, `payment-service`, and `notification-service`
+   - `/metrics` and `/health` are open to mesh scraping and probes
+
+To apply the security config:
+```bash
+kubectl apply -n meshmart -f istio/security.yaml
+```
+
+To verify authorization is working (e.g. denying unauthorized communication), try running a curl request from a standard pod that doesn't belong to the `meshmart` allowed service accounts:
+```bash
+kubectl run test-curl --rm -i --tty --image=curlimages/curl --namespace=meshmart -- sh
+# Inside the container, try to access product-service:
+curl http://product-service:8004/products
+# Output should be: RBAC: access denied
+```
 
 ## Failure and Load Test
 

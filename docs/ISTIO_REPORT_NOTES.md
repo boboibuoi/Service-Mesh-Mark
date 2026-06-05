@@ -22,7 +22,7 @@ That is why each pod should have two containers:
 
 ## Gateway Routing
 
-The demo uses an Istio Gateway and VirtualService:
+The platform uses an Istio Gateway and VirtualService:
 
 ```text
 Client
@@ -38,7 +38,7 @@ Routes:
 - `/payments` and `/payment` go to payment-service
 - `/notifications` goes to notification-service
 
-## Fault Tolerance Demo
+## Fault Tolerance Validation
 
 Payment Service can simulate three states:
 
@@ -54,7 +54,7 @@ Istio config adds:
 - retry for transient failures
 - circuit breaker through DestinationRule outlier detection
 
-## Observability Demo
+## Observability Evidence
 
 Prometheus collects metrics from Istio sidecars.
 
@@ -76,7 +76,7 @@ Kiali shows the service graph and traffic health.
 
 ## Load Test Table Template
 
-Example results from the local Kind demo:
+Example results from the local Kind run:
 
 | Scenario | Replicas | Result |
 | --- | ---: | --- |

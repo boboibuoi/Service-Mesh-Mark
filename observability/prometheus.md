@@ -2,7 +2,7 @@
 
 Prometheus is installed from the Istio sample add-ons and scrapes Istio sidecar metrics.
 
-Useful demo queries:
+Useful queries:
 
 ```text
 istio_requests_total
@@ -12,5 +12,5 @@ histogram_quantile(0.95, sum(rate(istio_request_duration_milliseconds_bucket[1m]
 
 Expected result:
 
-- Request counters increase when the frontend or `scripts/demo.ps1` sends traffic.
+- Request counters increase when the frontend or `scripts/evidence-run.ps1` generates traffic.
 - Error/timeout traffic appears when calling `/payment?mode=slow`.

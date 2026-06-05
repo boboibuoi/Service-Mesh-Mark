@@ -1,16 +1,19 @@
-# Demo Evidence
+# Evidence Checklist
 
-This table is the final checklist for the end-to-end technical demo.
+This table is the final checklist for the end-to-end technical presentation.
 
-| Demo area | Evidence command or screen | Expected result |
+| Validation area | Evidence command or screen | Expected result |
 | --- | --- | --- |
 | Normal request | `POST /orders` with `payment_mode=success` | `order_status=confirmed`, `payment_status=success`, `notification=sent` |
+| Inventory commit | Successful cart checkout then refresh `/products` | Purchased product stock decreases and order shows `inventory_status=committed` |
 | Failure request | `POST /orders` with `payment_mode=failed` | `order_status=payment_failed`, payment failure reason visible |
+| Inventory compensation | Failed payment after inventory reservation | Order shows `inventory_status=released` and stock is restored |
+| Product review | Submit rating/comment/image URL after checkout | Product rating and `review_count` update |
 | Idempotent retry | `POST /orders` twice with the same `Idempotency-Key` | Both responses use the same `order_id` |
 | Timeout request | `GET /payment?mode=slow` through Istio Gateway | `504 Gateway Timeout` from `istio-envoy` |
 | Chaos recovery | Delete one `payment-service` pod | Deployment returns to desired replicas and order flow still works |
-| Service mesh | `kubectl get pods -n shopping-demo` | Application pods show `2/2 Running` |
-| Routing | Frontend opened through `http://127.0.0.1:18080` | UI loads products and Buy button works |
+| Service mesh | `kubectl get pods -n meshmart` | Application pods show `2/2 Running` |
+| Routing | Frontend opened through `http://127.0.0.1:18080` | UI loads products, cart, checkout, reviews, and order history |
 | Prometheus | Query `istio_requests_total` | Request metrics exist |
 | Grafana | Istio dashboard | Request rate, latency, and error panels show traffic |
 | Jaeger | `http://127.0.0.1:16686/jaeger/` | Services include order, product, payment, notification |
@@ -33,6 +36,6 @@ The latest local Kind run showed:
 
 Notes:
 
-- The demo ran on a single-node Kind cluster inside Docker Desktop.
+- The latest run executed on a single-node Kind cluster inside Docker Desktop.
 - p95 can spike on local machines because app pods, Istio, add-ons, and Docker all share the same host resources.
-- Use `scripts/demo.ps1` to regenerate evidence JSON before presenting.
+- Use `scripts/evidence-run.ps1` to regenerate evidence JSON before presenting.

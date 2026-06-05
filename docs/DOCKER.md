@@ -5,11 +5,11 @@ Each service has its own Dockerfile.
 ## Build Images
 
 ```bash
-docker build -t service-mesh-observability-demo/frontend:v1.0.0-demo ./frontend
-docker build -t service-mesh-observability-demo/product-service:v1.0.0-demo ./product-service
-docker build -t service-mesh-observability-demo/order-service:v1.0.0-demo ./order-service
-docker build -t service-mesh-observability-demo/payment-service:v1.0.0-demo ./payment-service
-docker build -t service-mesh-observability-demo/notification-service:v1.0.0-demo ./notification-service
+docker build -t meshmart-service-mesh/frontend:v1.0.0 ./frontend
+docker build -t meshmart-service-mesh/product-service:v1.0.0 ./product-service
+docker build -t meshmart-service-mesh/order-service:v1.0.0 ./order-service
+docker build -t meshmart-service-mesh/payment-service:v1.0.0 ./payment-service
+docker build -t meshmart-service-mesh/notification-service:v1.0.0 ./notification-service
 ```
 
 ## Run Containers
@@ -17,25 +17,25 @@ docker build -t service-mesh-observability-demo/notification-service:v1.0.0-demo
 Run backend services on the same Docker network:
 
 ```bash
-docker network create service-demo
+docker network create meshmart-net
 ```
 
 ```bash
-docker run --rm --name product-service --network service-demo -p 8004:8004 service-mesh-observability-demo/product-service:v1.0.0-demo
-docker run --rm --name payment-service --network service-demo -p 8002:8002 service-mesh-observability-demo/payment-service:v1.0.0-demo
-docker run --rm --name notification-service --network service-demo -p 8003:8003 service-mesh-observability-demo/notification-service:v1.0.0-demo
+docker run --rm --name product-service --network meshmart-net -p 8004:8004 meshmart-service-mesh/product-service:v1.0.0
+docker run --rm --name payment-service --network meshmart-net -p 8002:8002 meshmart-service-mesh/payment-service:v1.0.0
+docker run --rm --name notification-service --network meshmart-net -p 8003:8003 meshmart-service-mesh/notification-service:v1.0.0
 ```
 
 ```bash
-docker run --rm --name order-service --network service-demo -p 8001:8001 \
+docker run --rm --name order-service --network meshmart-net -p 8001:8001 \
   -e PRODUCT_SERVICE_URL=http://product-service:8004 \
   -e PAYMENT_SERVICE_URL=http://payment-service:8002 \
   -e NOTIFICATION_SERVICE_URL=http://notification-service:8003 \
-  service-mesh-observability-demo/order-service:v1.0.0-demo
+  meshmart-service-mesh/order-service:v1.0.0
 ```
 
 ```bash
-docker run --rm --name frontend -p 8080:80 service-mesh-observability-demo/frontend:v1.0.0-demo
+docker run --rm --name frontend -p 8080:80 meshmart-service-mesh/frontend:v1.0.0
 ```
 
 ## Docker Compose

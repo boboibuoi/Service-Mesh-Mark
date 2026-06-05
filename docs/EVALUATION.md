@@ -43,6 +43,6 @@ Interpretation:
 
 ## Limitations
 
-- The demo idempotency store is in-memory. It is enough to demonstrate retry-safe semantics in the course demo, but a production multi-replica system should move idempotency records to Redis, PostgreSQL, or another shared durable store.
+- The current idempotency store is in-memory. It is enough to show retry-safe semantics in the course evaluation, but a production multi-replica system should move idempotency records to Redis, PostgreSQL, or another shared durable store.
 - The product catalog is static in memory.
 - The load test runs on a local Kind cluster, so numbers show relative behavior rather than production capacity.

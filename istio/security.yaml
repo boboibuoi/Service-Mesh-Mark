@@ -1,0 +1,142 @@
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: meshmart-strict-mtls
+  namespace: meshmart
+spec:
+  mtls:
+    mode: STRICT
+---
+# Ingress gateway to Frontend
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: frontend-authz
+  namespace: meshmart
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+      to:
+        - operation:
+            methods: ["GET", "HEAD"]
+            ports: ["80"]
+    - to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/health", "/metrics"]
+---
+# Ingress gateway & Frontend to Order Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: order-service-authz
+  namespace: meshmart
+spec:
+  selector:
+    matchLabels:
+      app: order-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+        - source:
+            principals: ["cluster.local/ns/meshmart/sa/frontend"]
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            ports: ["8001"]
+    - to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/health", "/metrics"]
+---
+# Ingress gateway, Frontend, & Order Service to Product Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: product-service-authz
+  namespace: meshmart
+spec:
+  selector:
+    matchLabels:
+      app: product-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+        - source:
+            principals:
+              - "cluster.local/ns/meshmart/sa/frontend"
+              - "cluster.local/ns/meshmart/sa/order-service"
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            ports: ["8004"]
+    - to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/health", "/metrics"]
+---
+# Ingress gateway, Frontend, & Order Service to Payment Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: payment-service-authz
+  namespace: meshmart
+spec:
+  selector:
+    matchLabels:
+      app: payment-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+        - source:
+            principals:
+              - "cluster.local/ns/meshmart/sa/frontend"
+              - "cluster.local/ns/meshmart/sa/order-service"
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            ports: ["8002"]
+    - to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/health", "/metrics"]
+---
+# Ingress gateway, Frontend, & Order Service to Notification Service
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: notification-service-authz
+  namespace: meshmart
+spec:
+  selector:
+    matchLabels:
+      app: notification-service
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces: ["istio-system"]
+        - source:
+            principals:
+              - "cluster.local/ns/meshmart/sa/frontend"
+              - "cluster.local/ns/meshmart/sa/order-service"
+      to:
+        - operation:
+            methods: ["GET", "POST", "PUT", "DELETE"]
+            ports: ["8003"]
+    - to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/health", "/metrics"]

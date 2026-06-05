@@ -1,4 +1,4 @@
-# Demo Script
+# Presentation Runbook
 
 Use this order during the presentation. Keep one terminal open for commands and one browser open for the UI and dashboards.
 
@@ -19,7 +19,7 @@ Expected result:
 
 ```powershell
 $body = @{
-  user_id = "demo-user"
+  user_id = "meshmart-user"
   product_id = "PROD-001"
   quantity = 1
   payment_mode = "success"
@@ -42,7 +42,7 @@ Expected result:
 
 ```powershell
 $body = @{
-  user_id = "demo-user"
+  user_id = "meshmart-user"
   product_id = "PROD-001"
   quantity = 1
   payment_mode = "failed"
@@ -64,9 +64,9 @@ Expected result:
 ## 4. Idempotency Retry
 
 ```powershell
-$key = "demo-idempotency-001"
+$key = "meshmart-idempotency-001"
 $body = @{
-  user_id = "demo-user"
+  user_id = "meshmart-user"
   product_id = "PROD-001"
   quantity = 1
   payment_mode = "success"
@@ -90,7 +90,7 @@ Invoke-RestMethod `
 Expected result:
 
 - Both responses return the same `order_id`.
-- This demonstrates retry-safe order creation.
+- This shows retry-safe order creation.
 
 ## 5. Timeout Request
 
@@ -101,12 +101,12 @@ curl.exe -i "http://127.0.0.1:18080/payment?mode=slow"
 Expected result:
 
 - Istio returns `504 Gateway Timeout`.
-- This demonstrates timeout behavior for slow payment traffic.
+- This shows timeout behavior for slow payment traffic.
 
 ## 6. Chaos Recovery
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\chaos-demo.ps1
+powershell -ExecutionPolicy Bypass -File .\scripts\chaos-recovery.ps1
 ```
 
 Expected result:
@@ -143,10 +143,10 @@ Evidence to show:
 
 ## 8. Scaling
 
-Note: `http://127.0.0.1:18080` is the Docker Compose frontend in this repo. If you need Kiali graph data for the `shopping-demo` mesh, use the Istio ingress gateway on `http://127.0.0.1:18081` so the traffic actually enters the Kubernetes mesh.
+Note: `http://127.0.0.1:18080` is the Docker Compose frontend in this repo. If you need Kiali graph data for the `meshmart` mesh, use the Istio ingress gateway on `http://127.0.0.1:18081` so the traffic actually enters the Kubernetes mesh.
 
 ```powershell
-kubectl scale -n shopping-demo deployment/order-service deployment/product-service deployment/payment-service deployment/notification-service --replicas=1
+kubectl scale -n meshmart deployment/order-service deployment/product-service deployment/payment-service deployment/notification-service --replicas=1
 docker run --rm `
   -e BASE_URL=http://host.docker.internal:18081 `
   -e VUS=10 `
@@ -154,7 +154,7 @@ docker run --rm `
   --mount "type=bind,source=$PWD,target=/scripts" `
   grafana/k6:latest run /scripts/load-test.js
 
-kubectl scale -n shopping-demo deployment/order-service deployment/product-service deployment/payment-service deployment/notification-service --replicas=3
+kubectl scale -n meshmart deployment/order-service deployment/product-service deployment/payment-service deployment/notification-service --replicas=3
 docker run --rm `
   -e BASE_URL=http://host.docker.internal:18081 `
   -e VUS=10 `
@@ -172,7 +172,7 @@ kubectl port-forward --address 0.0.0.0 -n istio-system svc/istio-ingressgateway 
 ## One Command Evidence Run
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\scripts\demo.ps1 -RunLoadTest -RunScalingDemo
+powershell -ExecutionPolicy Bypass -File .\scripts\evidence-run.ps1 -RunLoadTest -RunScalingScenario
 ```
 
-The script writes JSON evidence into `demo-evidence/`.
+The script writes JSON evidence into `evidence/`.

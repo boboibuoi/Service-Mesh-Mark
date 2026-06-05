@@ -1,0 +1,173 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" role="img" aria-labelledby="title desc">
+  <title id="title">Service Mesh Observability Architecture</title>
+  <desc id="desc">Architecture diagram for an online shopping microservices system using Kubernetes, Istio service mesh, Envoy sidecars, and observability tools.</desc>
+  <defs>
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ea580c" />
+    </marker>
+    <filter id="soft-shadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#0f172a" flood-opacity="0.10" />
+    </filter>
+    <style>
+      .page { fill: #f8fafc; }
+      .title { font: 700 40px Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 400 20px Arial, sans-serif; fill: #475569; }
+      .section-title { font: 700 22px Arial, sans-serif; fill: #0f172a; }
+      .section-note { font: 400 16px Arial, sans-serif; fill: #475569; }
+      .box-title { font: 700 22px Arial, sans-serif; fill: #0f172a; }
+      .box-text { font: 400 16px Arial, sans-serif; fill: #475569; }
+      .small { font: 400 14px Arial, sans-serif; fill: #64748b; }
+      .chip-text { font: 700 13px Arial, sans-serif; fill: #334155; }
+      .label { font: 700 15px Arial, sans-serif; fill: #334155; }
+      .footer { font: 400 16px Arial, sans-serif; fill: #475569; }
+      .cluster { fill: #eef6ff; stroke: #2563eb; stroke-width: 2.6; }
+      .mesh { fill: #f0fdf4; stroke: #16a34a; stroke-width: 2.6; }
+      .obs-panel { fill: #fff7ed; stroke: #f97316; stroke-width: 2.6; }
+      .card { fill: #ffffff; stroke: #64748b; stroke-width: 2; filter: url(#soft-shadow); }
+      .gateway { fill: #dbeafe; stroke: #2563eb; stroke-width: 2.8; filter: url(#soft-shadow); }
+      .order { fill: #ecfeff; stroke: #0891b2; stroke-width: 2.8; filter: url(#soft-shadow); }
+      .payment { fill: #fff1f2; stroke: #e11d48; stroke-width: 2.8; filter: url(#soft-shadow); }
+      .tool { fill: #ffffff; stroke: #f97316; stroke-width: 2.2; filter: url(#soft-shadow); }
+      .envoy-strip { fill: #e2e8f0; stroke: #cbd5e1; stroke-width: 1.2; }
+      .telemetry-node { fill: #ffffff; stroke: #ea580c; stroke-width: 2.2; filter: url(#soft-shadow); }
+      .legend-box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.5; }
+      .label-bg { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1.2; }
+      .entry { stroke: #2563eb; stroke-width: 3.4; fill: none; marker-end: url(#arrow-blue); }
+      .flow { stroke: #334155; stroke-width: 3; fill: none; marker-end: url(#arrow-dark); }
+      .telemetry { stroke: #ea580c; stroke-width: 3; fill: none; stroke-dasharray: 11 9; marker-end: url(#arrow-orange); }
+    </style>
+  </defs>
+
+  <rect class="page" x="0" y="0" width="1920" height="1080" />
+
+  <text class="title" x="72" y="66">Service Mesh Observability Architecture</text>
+  <text class="subtitle" x="72" y="100">MeshMart online shopping platform with Istio traffic control and telemetry evidence</text>
+
+  <rect class="cluster" x="315" y="145" width="1035" height="830" rx="22" />
+  <text class="section-title" x="350" y="188">Kubernetes namespace: meshmart</text>
+  <text class="section-note" x="350" y="216">Deployments, Services, health probes, and Istio sidecar injection</text>
+
+  <rect class="mesh" x="640" y="260" width="655" height="630" rx="22" />
+  <text class="section-title" x="675" y="303">Istio service mesh</text>
+  <text class="section-note" x="675" y="330">Envoy sidecars sit beside each service container</text>
+
+  <rect class="card" x="65" y="465" width="210" height="110" rx="16" />
+  <text class="box-title" x="124" y="510">User</text>
+  <text class="box-text" x="100" y="543">Browser / Postman</text>
+
+  <rect class="gateway" x="370" y="465" width="230" height="110" rx="16" />
+  <text class="box-title" x="421" y="510">Istio Ingress</text>
+  <text class="box-text" x="447" y="543">Gateway</text>
+
+  <rect class="card" x="700" y="365" width="240" height="120" rx="16" />
+  <text class="box-title" x="760" y="407">frontend</text>
+  <text class="box-text" x="746" y="435">Nginx static UI</text>
+  <rect class="envoy-strip" x="700" y="447" width="240" height="38" rx="12" />
+  <text class="chip-text" x="769" y="471">Envoy sidecar</text>
+
+  <rect class="order" x="700" y="560" width="240" height="145" rx="16" />
+  <text class="box-title" x="746" y="604">order-service</text>
+  <text class="box-text" x="756" y="632">FastAPI :8001</text>
+  <text class="small" x="760" y="656">POST /orders</text>
+  <rect class="envoy-strip" x="700" y="667" width="240" height="38" rx="12" />
+  <text class="chip-text" x="769" y="691">Envoy sidecar</text>
+
+  <rect class="card" x="1015" y="325" width="240" height="120" rx="16" />
+  <text class="box-title" x="1061" y="367">product-service</text>
+  <text class="box-text" x="1075" y="395">FastAPI :8004</text>
+  <rect class="envoy-strip" x="1015" y="407" width="240" height="38" rx="12" />
+  <text class="chip-text" x="1084" y="431">Envoy sidecar</text>
+
+  <rect class="payment" x="1015" y="510" width="240" height="135" rx="16" />
+  <text class="box-title" x="1058" y="553">payment-service</text>
+  <text class="box-text" x="1075" y="581">FastAPI :8002</text>
+  <text class="small" x="1047" y="604">success / failed / delayed</text>
+  <rect class="envoy-strip" x="1015" y="607" width="240" height="38" rx="12" />
+  <text class="chip-text" x="1084" y="631">Envoy sidecar</text>
+
+  <rect class="card" x="1015" y="710" width="240" height="120" rx="16" />
+  <text class="box-title" x="1045" y="752">notification-service</text>
+  <text class="box-text" x="1075" y="780">FastAPI :8003</text>
+  <rect class="envoy-strip" x="1015" y="792" width="240" height="38" rx="12" />
+  <text class="chip-text" x="1084" y="816">Envoy sidecar</text>
+
+  <rect class="telemetry-node" x="700" y="790" width="240" height="70" rx="15" />
+  <text class="box-title" x="748" y="821">Telemetry</text>
+  <text class="small" x="730" y="845">metrics, traces, topology</text>
+
+  <path class="entry" d="M 275 520 H 370" />
+  <rect class="label-bg" x="292" y="486" width="62" height="28" rx="7" />
+  <text class="label" x="307" y="506">HTTP</text>
+
+  <path class="entry" d="M 600 500 H 655 V 425 H 700" />
+  <rect class="label-bg" x="622" y="383" width="64" height="28" rx="7" />
+  <text class="label" x="635" y="403">GET /</text>
+
+  <path class="entry" d="M 600 545 H 655 V 632 H 700" />
+  <rect class="label-bg" x="604" y="596" width="132" height="28" rx="7" />
+  <text class="label" x="616" y="616">POST /orders</text>
+
+  <path class="flow" d="M 940 607 H 972 V 385 H 1015" />
+  <rect class="label-bg" x="943" y="468" width="120" height="28" rx="7" />
+  <text class="label" x="956" y="488">GET product</text>
+
+  <path class="flow" d="M 940 632 H 1015" />
+  <rect class="label-bg" x="948" y="598" width="96" height="28" rx="7" />
+  <text class="label" x="962" y="618">POST pay</text>
+
+  <path class="flow" d="M 940 657 H 972 V 770 H 1015" />
+  <rect class="label-bg" x="906" y="676" width="122" height="28" rx="7" />
+  <text class="label" x="918" y="696">POST notify</text>
+
+  <rect class="obs-panel" x="1400" y="145" width="455" height="830" rx="22" />
+  <text class="section-title" x="1435" y="188">Observability stack</text>
+  <text class="section-note" x="1435" y="216">Tools that explain system behavior</text>
+
+  <rect class="tool" x="1470" y="285" width="310" height="100" rx="16" />
+  <text class="box-title" x="1564" y="324">Prometheus</text>
+  <text class="box-text" x="1524" y="354">stores Istio request metrics</text>
+
+  <rect class="tool" x="1470" y="440" width="310" height="100" rx="16" />
+  <text class="box-title" x="1584" y="479">Grafana</text>
+  <text class="box-text" x="1532" y="509">visualizes dashboards</text>
+
+  <rect class="tool" x="1470" y="595" width="310" height="100" rx="16" />
+  <text class="box-title" x="1592" y="634">Jaeger</text>
+  <text class="box-text" x="1532" y="664">shows distributed traces</text>
+
+  <rect class="tool" x="1470" y="750" width="310" height="100" rx="16" />
+  <text class="box-title" x="1605" y="789">Kiali</text>
+  <text class="box-text" x="1518" y="819">shows service mesh topology</text>
+
+  <path class="telemetry" d="M 940 850 H 1350 V 335 H 1470" />
+  <rect class="label-bg" x="1254" y="303" width="112" height="28" rx="7" />
+  <text class="label" x="1266" y="323">metrics</text>
+
+  <path class="flow" d="M 1625 385 V 440" />
+  <rect class="label-bg" x="1642" y="401" width="98" height="28" rx="7" />
+  <text class="label" x="1654" y="421">dashboard</text>
+
+  <path class="telemetry" d="M 940 850 H 1350 V 645 H 1470" />
+  <rect class="label-bg" x="1258" y="612" width="102" height="28" rx="7" />
+  <text class="label" x="1274" y="632">traces</text>
+
+  <path class="telemetry" d="M 940 850 H 1350 V 800 H 1470" />
+  <rect class="label-bg" x="1240" y="766" width="124" height="28" rx="7" />
+  <text class="label" x="1252" y="786">mesh graph</text>
+
+  <rect class="legend-box" x="370" y="675" width="230" height="155" rx="16" />
+  <text class="section-title" x="395" y="713">Envoy sidecar</text>
+  <text class="section-note" x="395" y="742">Istio-injected proxy</text>
+  <text class="section-note" x="395" y="770">beside each service.</text>
+  <text class="section-note" x="395" y="798">It controls traffic</text>
+  <text class="section-note" x="395" y="826">and emits telemetry.</text>
+
+  <text class="footer" x="72" y="1024">Presentation message: the shopping flow creates distributed service traffic; Istio controls it; observability tools prove where latency, errors, and dependencies appear.</text>
+</svg>
+

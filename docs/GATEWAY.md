@@ -1,6 +1,6 @@
 # Optional API Gateway
 
-The main demo path uses Istio Gateway:
+The main Kubernetes path uses Istio Gateway:
 
 ```text
 Client -> Istio Ingress Gateway -> frontend / order-service / product-service / payment-service
@@ -8,7 +8,7 @@ Client -> Istio Ingress Gateway -> frontend / order-service / product-service / 
 
 The `gateway/` service is intentionally optional. It is a small FastAPI edge gateway that can forward API calls to backend services when running outside Istio or when comparing application-level gateway routing with service-mesh routing.
 
-## Why It Is Not In The Main Demo
+## Why It Is Not In The Main Path
 
 Istio already provides the important distributed-system features for this project:
 
@@ -17,7 +17,7 @@ Istio already provides the important distributed-system features for this projec
 - circuit breaker settings through `DestinationRule`
 - sidecar telemetry, tracing, and service graph
 
-Keeping the FastAPI gateway out of the main Kubernetes path keeps the demo focused on service mesh behavior.
+Keeping the FastAPI gateway out of the main Kubernetes path keeps the project focused on service mesh behavior.
 
 ## When To Use It
 

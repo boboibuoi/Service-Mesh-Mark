@@ -1,23 +1,25 @@
-﻿# Service Mesh Observability Demo
+# MeshMart Service Mesh Observability Platform
 
-Microservices demo for a distributed system course project. The app models a small shopping flow and is prepared for Docker, Kubernetes, Istio, and observability tooling.
+MeshMart is an online shopping microservices platform built to show service-to-service communication, traffic control, fault handling, and observability in a distributed system.
+
+The application is intentionally small, but it is structured like a real production system: independent services, container packaging, Kubernetes manifests, Istio traffic policies, retry-safe checkout, and telemetry evidence through metrics, traces, logs, and service topology.
 
 ## Architecture
 
 ```text
-frontend
-   |
-   |--> product-service
-   |--> order-service
-           |--> product-service
-           |--> payment-service
-           |--> notification-service
+Browser / Postman
+  -> Istio Ingress Gateway
+  -> frontend
+  -> order-service
+      -> product-service
+      -> payment-service
+      -> notification-service
 ```
 
 ## Repository Layout
 
 ```text
-service-mesh-observability-demo/
+meshmart-service-mesh/
 |-- frontend/
 |-- product-service/
 |-- order-service/
@@ -32,33 +34,32 @@ service-mesh-observability-demo/
 |-- README.md
 ```
 
-## API List
+## Services
 
-In Docker Compose, the frontend calls `product-service` and `order-service` through host ports.
-In Kubernetes, Istio routes public traffic to frontend and backend APIs.
+| Service | Port | Responsibility |
+| --- | --- | --- |
+| frontend | 8080 | MeshMart storefront and operational checkout panel |
+| product-service | 8004 | Product catalog, inventory reservation, customer reviews, pricing, stock, and product metadata |
+| order-service | 8001 | Cart checkout orchestration, order history, idempotency, and service-to-service calls |
+| payment-service | 8002 | Payment approval, decline, and slow-processor behavior |
+| notification-service | 8003 | Checkout notification result |
+
+## API List
 
 | Method | Endpoint | Purpose |
 | --- | --- | --- |
-| GET | `/products` | List demo products |
+| GET | `/products` | List product catalog |
 | GET | `/products/{id}` | Get one product by id |
+| GET | `/products/{id}/reviews` | List customer reviews for one product |
+| POST | `/products/{id}/reviews` | Submit rating, comment, and optional image URL |
 | POST | `/orders` | Create an order and trigger payment + notification |
+| GET | `/orders` | List recent orders, optionally filtered by `user_id` |
+| GET | `/orders/{id}` | Get one stored order by id |
 | POST | `/payments` | Process a payment directly |
 | POST | `/notifications` | Send a notification directly |
 | GET | `/health` | Check service health |
 
-More details are in [docs/API.md](docs/API.md).
-
-`POST /orders` supports the `Idempotency-Key` header to make client retries safe during network failures or timeout retries.
-
-## Services
-
-| Service | Port | Main endpoints |
-| --- | --- | --- |
-| frontend | 8080 | Static demo UI |
-| product-service | 8004 | `/products`, `/products/{id}`, `/health` |
-| order-service | 8001 | `/orders`, `/health` |
-| payment-service | 8002 | `/payments`, `/payment/process`, `/payment/fail`, `/payment/delay`, `/health` |
-| notification-service | 8003 | `/notifications`, `/health` |
+`POST /orders` supports the `Idempotency-Key` header. Retrying the same checkout payload with the same key returns the same logical order id instead of creating duplicate orders.
 
 ## Run Locally
 
@@ -66,109 +67,113 @@ More details are in [docs/API.md](docs/API.md).
 docker compose up --build
 ```
 
-Use this foreground form if you want the terminal to stay attached until you stop it with `Ctrl+C`.
-If you run `docker compose up -d --build`, Compose detaches immediately and the command exits by design.
-
-Open the demo UI:
+Open the storefront:
 
 ```text
 http://localhost:8080
 ```
 
-Call the services:
+Call the catalog service:
 
 ```bash
 curl http://localhost:8004/products
 ```
 
+Create an order:
+
 ```bash
 curl -X POST http://localhost:8001/orders \
   -H "Content-Type: application/json" \
-  -d "{\"user_id\":\"demo-user\",\"product_id\":\"PROD-001\",\"quantity\":1,\"payment_mode\":\"success\"}"
+  -H "Idempotency-Key: order-local-001" \
+  -H "X-Request-Id: req-local-001" \
+  -d "{\"user_id\":\"customer-001\",\"items\":[{\"product_id\":\"PROD-001\",\"quantity\":1},{\"product_id\":\"PROD-003\",\"quantity\":2}],\"payment_mode\":\"success\"}"
 ```
 
-Expected order response:
+Expected response:
 
 ```json
 {
-  "order_id": "ORD-001",
   "order_status": "confirmed",
-  "amount": 899.0,
+  "amount": 1077.0,
+  "inventory": {
+    "inventory_status": "committed"
+  },
+  "payment": {
+    "payment_status": "success"
+  },
   "notification": "sent"
 }
 ```
 
-## Demo Scenarios
+## Operational Scenarios
 
-1. Normal request: call `POST /orders` with `payment_mode=success`.
-2. Payment delay: call `POST /orders` with `payment_mode=delayed`.
-3. Payment failure: call `POST /orders` with `payment_mode=failed`.
-4. Observability: inspect traffic, latency, and errors with Istio, Prometheus, Grafana, and Jaeger.
-5. Scaling: run `load-test.js` before and after increasing backend replicas.
+1. Normal checkout: `payment_mode=success`.
+2. Payment decline: `payment_mode=failed`.
+3. Inventory compensation: declined payment releases reserved stock.
+4. Product review: submit rating, comment, and image URL after checkout.
+5. Slow payment processor: `payment_mode=delayed`.
+6. Retry-safe checkout: send the same `Idempotency-Key` twice.
+7. Timeout/retry policy: inspect Istio `VirtualService` and payment policy behavior.
+8. Scaling: run `load-test.js` before and after increasing backend replicas or enabling HPA.
+9. Observability: inspect metrics, traces, logs, and service graph.
 
-The final presentation walkthrough is in [docs/DEMO_SCRIPT.md](docs/DEMO_SCRIPT.md).
-Evidence checklist and load-test results are in [docs/DEMO_EVIDENCE.md](docs/DEMO_EVIDENCE.md).
-The report outline and evaluation table are in [docs/REPORT.md](docs/REPORT.md) and [docs/EVALUATION.md](docs/EVALUATION.md).
-The chaos recovery demo is in [docs/CHAOS_DEMO.md](docs/CHAOS_DEMO.md).
+## Kubernetes And Istio
 
-Direct payment demo through `POST /payments`:
-
-```json
-{
-  "order_id": "ORD-001",
-  "amount": 100,
-  "mode": "success"
-}
-```
-
-Change `mode` to `failed` or `delayed` to demo error and latency behavior.
-
-## Kubernetes and Istio
-
-The `k8s/` folder contains first-pass Deployment and Service manifests.
-
-The `istio/` folder contains:
-
-- `gateway.yaml`
-- `virtual-service.yaml`
-- `destination-rule.yaml`
+The `k8s/` folder contains Deployment, Service, HorizontalPodAutoscaler, and PodDisruptionBudget manifests. The `istio/` folder contains Gateway, VirtualService, DestinationRule, telemetry, and payment policy configuration.
 
 Typical local cluster flow:
 
 ```bash
-kubectl apply -f k8s/
-kubectl apply -f istio/gateway.yaml
-kubectl apply -f istio/virtual-service.yaml
-kubectl apply -f istio/destination-rule.yaml
-kubectl apply -f istio/payment-policy.yaml
+kubectl create namespace meshmart
+kubectl label namespace meshmart istio-injection=enabled
+kubectl apply -n meshmart -f k8s/
+kubectl apply -n meshmart -f istio/gateway.yaml
+kubectl apply -n meshmart -f istio/virtual-service.yaml
+kubectl apply -n meshmart -f istio/destination-rule.yaml
+kubectl apply -n meshmart -f istio/payment-policy.yaml
+kubectl apply -n meshmart -f istio/security.yaml
 kubectl apply -f istio/telemetry-tracing.yaml
 ```
 
-`istio/payment-fault-injection.yaml` is optional and should be applied only during a controlled fault-injection demo.
-
-Image names use the explicit final demo tag `service-mesh-observability-demo/*:v1.0.0-demo`. Replace them with your registry image names before deploying to a remote cluster.
-
-Step-by-step Kubernetes and Istio commands are in [docs/KUBERNETES_ISTIO.md](docs/KUBERNETES_ISTIO.md).
-Short report notes for Istio, sidecars, observability, and load testing are in [docs/ISTIO_REPORT_NOTES.md](docs/ISTIO_REPORT_NOTES.md).
-The automated evidence runner is [scripts/demo.ps1](scripts/demo.ps1).
-
-## Optional API Gateway
-
-The project uses Istio Gateway as the primary production-style ingress for Kubernetes. The `gateway/` folder is kept as an optional FastAPI edge gateway for comparison or local experiments. It is not required for the main Kubernetes/Istio demo path.
-
-More detail: [docs/GATEWAY.md](docs/GATEWAY.md).
+Images use the project tag `meshmart-service-mesh/*:v1.0.0`. Replace this with your registry path before deploying to a remote cluster.
 
 ## Observability
 
-Observability setup and dashboard notes are in [observability/README.md](observability/README.md).
+The platform is designed to answer practical distributed-system questions:
 
-## Docker
+| Question | Evidence |
+| --- | --- |
+| Is the system healthy overall? | Prometheus metrics and Grafana dashboards |
+| Where did one request spend time? | Jaeger distributed trace spans |
+| Which services communicate? | Kiali service mesh topology |
+| What happened inside a service? | Structured request logs with `request_id`, status, and duration |
 
-Docker build and run commands are in [docs/DOCKER.md](docs/DOCKER.md).
+Useful files:
 
-## Team Split
+- [docs/PRESENTATION_ARCHITECTURE_SCRIPT.md](docs/PRESENTATION_ARCHITECTURE_SCRIPT.md)
+- [docs/REPORT.md](docs/REPORT.md)
+- [docs/EVALUATION.md](docs/EVALUATION.md)
+- [docs/KUBERNETES_ISTIO.md](docs/KUBERNETES_ISTIO.md)
+- [observability/README.md](observability/README.md)
 
-- Backend APIs: product, order, payment, notification
-- Platform: Docker Compose, Kubernetes manifests, Istio routing
-- Observability and demo: Grafana, Prometheus, Jaeger, failure scenarios, README/docs
+## Project Strengths
 
+- Clear microservice boundaries.
+- Real cart checkout flow with multi-item orders and recent order history.
+- Inventory reservation with stock decrement and compensation on payment failure.
+- Customer product reviews with rating, comment, and optional image URL.
+- Istio Gateway and VirtualService routing.
+- Retry, timeout, outlier detection, and fault behavior around service traffic.
+- Idempotent order creation for client retries.
+- Graceful degradation when notification delivery is unavailable.
+- Resource requests, limits, HPA, and PodDisruptionBudgets for scalability and availability.
+- Request-id logging across services.
+- Productive storefront UI plus operational evidence panel.
+
+## Future Work
+
+- Persist product/order/idempotency data in PostgreSQL or Redis.
+- Add authentication and authorization policy.
+- Add mTLS policy documentation and screenshots.
+- Add alert rules for high latency and payment failure rate.
+- Publish images to a container registry and deploy to a remote cluster.

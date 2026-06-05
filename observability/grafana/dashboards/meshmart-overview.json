@@ -1,0 +1,274 @@
+{
+  "uid": "meshmart-overview",
+  "title": "MeshMart — Application Overview",
+  "description": "Custom application-level metrics from MeshMart microservices (order-service, product-service, payment-service, notification-service)",
+  "tags": ["meshmart", "microservices", "application"],
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "schemaVersion": 39,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Total Orders",
+      "description": "All orders created since service started",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "targets": [{ "expr": "sum(meshmart_orders_total)", "legendFormat": "Total orders" }]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Confirmed Orders",
+      "description": "Orders with payment_status=confirmed",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "targets": [{ "expr": "sum(meshmart_orders_total{status='confirmed'})", "legendFormat": "Confirmed" }]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Failed Payments",
+      "description": "Orders where payment was declined",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "targets": [{ "expr": "sum(meshmart_orders_total{status='payment_failed'})", "legendFormat": "Failed" }]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Payment Success Rate",
+      "description": "Percentage of orders confirmed vs total",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] }, "text": {} },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 70 }, { "color": "green", "value": 90 }] },
+          "unit": "percent",
+          "min": 0,
+          "max": 100
+        }
+      },
+      "targets": [{ "expr": "sum(meshmart_orders_total{status='confirmed'}) / sum(meshmart_orders_total) * 100", "legendFormat": "Success %" }]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Total Reviews",
+      "description": "Total product reviews submitted",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "targets": [{ "expr": "sum(meshmart_reviews_total)", "legendFormat": "Reviews" }]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Notifications Sent",
+      "description": "Total checkout notifications dispatched",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "colorMode": "background", "graphMode": "area", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] },
+          "unit": "short"
+        }
+      },
+      "targets": [{ "expr": "sum(meshmart_notifications_total)", "legendFormat": "Notifications" }]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Order Rate (per minute)",
+      "description": "Rate of orders created — split by confirmed vs payment_failed",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "fieldConfig": {
+        "defaults": { "unit": "reqpm", "custom": { "lineWidth": 2, "fillOpacity": 15 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "confirmed" }, "properties": [{ "id": "color", "value": { "fixedColor": "#0f766e", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "payment_failed" }, "properties": [{ "id": "color", "value": { "fixedColor": "#b91c1c", "mode": "fixed" } }] }
+        ]
+      },
+      "targets": [
+        { "expr": "sum by (status) (rate(meshmart_orders_total[1m])) * 60", "legendFormat": "{{status}}" }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Order Processing Latency",
+      "description": "P50 / P95 / P99 end-to-end order duration (gateway → order-service → product → payment → notification)",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "fieldConfig": {
+        "defaults": { "unit": "s", "custom": { "lineWidth": 2, "fillOpacity": 8 } }
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, rate(meshmart_order_duration_seconds_bucket[2m]))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, rate(meshmart_order_duration_seconds_bucket[2m]))", "legendFormat": "p95" },
+        { "expr": "histogram_quantile(0.99, rate(meshmart_order_duration_seconds_bucket[2m]))", "legendFormat": "p99" }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "bargauge",
+      "title": "Product Stock Levels",
+      "description": "Current available stock per product (real-time gauge, decrements on reserve, increments on release)",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "valueMode": "color"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "yellow", "value": 5 }, { "color": "green", "value": 15 }] },
+          "min": 0
+        }
+      },
+      "targets": [{ "expr": "meshmart_product_stock_total", "legendFormat": "{{product_name}}" }]
+    },
+    {
+      "id": 10,
+      "type": "piechart",
+      "title": "Orders by Payment Mode",
+      "description": "Distribution of orders by payment_mode label (success / failed / delayed)",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "legend": { "displayMode": "list", "placement": "right" }, "pieType": "donut" },
+      "targets": [{ "expr": "sum by (payment_mode) (meshmart_orders_total)", "legendFormat": "{{payment_mode}}" }]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Payment Latency",
+      "description": "P50/P95 payment processing time — the 'delayed' mode spike should be visible here (~5s)",
+      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "fieldConfig": {
+        "defaults": { "unit": "s", "custom": { "lineWidth": 2, "fillOpacity": 10 } }
+      },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, rate(meshmart_payment_duration_seconds_bucket[2m]))", "legendFormat": "p50" },
+        { "expr": "histogram_quantile(0.95, rate(meshmart_payment_duration_seconds_bucket[2m]))", "legendFormat": "p95" }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Inventory Operations Rate",
+      "description": "Rate of reserve / commit / release inventory calls — commit should match confirmed orders, release should match failed payments",
+      "gridPos": { "x": 0, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": { "unit": "reqpm", "custom": { "lineWidth": 2, "fillOpacity": 10 } }
+      },
+      "targets": [
+        { "expr": "sum by (operation) (rate(meshmart_inventory_operations_total[1m])) * 60", "legendFormat": "{{operation}}" }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Idempotency Cache Events",
+      "description": "Hits on the idempotency cache — 'cached' means a duplicate was correctly prevented",
+      "gridPos": { "x": 12, "y": 20, "w": 12, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } }
+      },
+      "targets": [
+        { "expr": "sum by (outcome) (rate(meshmart_idempotency_hits_total[1m]))", "legendFormat": "{{outcome}}" }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "heatmap",
+      "title": "Order Amount Distribution (USD)",
+      "description": "Histogram heatmap showing distribution of cart checkout values",
+      "gridPos": { "x": 0, "y": 28, "w": 12, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "calculate": false, "color": { "scheme": "Spectral", "mode": "scheme" } },
+      "targets": [{ "expr": "sum(rate(meshmart_order_amount_usd_bucket[5m])) by (le)", "legendFormat": "{{le}}", "format": "heatmap" }]
+    },
+    {
+      "id": 15,
+      "type": "timeseries",
+      "title": "Reviews Submitted per Product",
+      "description": "Cumulative review count per product — updated whenever a customer writes a review",
+      "gridPos": { "x": 12, "y": 28, "w": 12, "h": 8 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } }
+      },
+      "targets": [
+        { "expr": "sum by (product_name) (meshmart_reviews_total)", "legendFormat": "{{product_name}}" }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "stat",
+      "title": "Orders In-Flight",
+      "description": "Orders currently being processed (should return to 0 after completion)",
+      "gridPos": { "x": 0, "y": 36, "w": 4, "h": 4 },
+      "datasource": { "uid": "meshmart-prometheus", "type": "prometheus" },
+      "options": { "colorMode": "background", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 3 }, { "color": "red", "value": 10 }] }
+        }
+      },
+      "targets": [{ "expr": "meshmart_order_in_flight", "legendFormat": "In-flight" }]
+    }
+  ]
+}

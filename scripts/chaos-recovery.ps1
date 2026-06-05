@@ -1,12 +1,12 @@
 param(
     [string]$BaseUrl = "http://127.0.0.1:18080",
-    [string]$Namespace = "shopping-demo",
-    [string]$EvidenceDir = "demo-evidence"
+    [string]$Namespace = "meshmart",
+    [string]$EvidenceDir = "evidence"
 )
 
 $ErrorActionPreference = "Stop"
 
-function Invoke-DemoOrder {
+function Invoke-PlatformOrder {
     $payload = @{
         user_id = "chaos-user-$([guid]::NewGuid().ToString('N').Substring(0, 8))"
         product_id = "PROD-001"
@@ -20,7 +20,7 @@ function Invoke-DemoOrder {
 New-Item -ItemType Directory -Force -Path $EvidenceDir | Out-Null
 
 Write-Host "1. Baseline order before chaos"
-$before = Invoke-DemoOrder
+$before = Invoke-PlatformOrder
 Write-Host "   OK order=$($before.order_id) status=$($before.order_status)"
 
 Write-Host "2. Delete one payment-service pod"
@@ -35,7 +35,7 @@ kubectl rollout status -n $Namespace deployment/payment-service --timeout=300s |
 $paymentPods = kubectl get pods -n $Namespace -l app=payment-service --no-headers
 
 Write-Host "4. Order after recovery"
-$after = Invoke-DemoOrder
+$after = Invoke-PlatformOrder
 Write-Host "   OK order=$($after.order_id) status=$($after.order_status)"
 
 $evidence = [ordered]@{

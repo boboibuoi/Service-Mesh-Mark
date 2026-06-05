@@ -16,14 +16,14 @@ frontend or direct API call
 
 ## Observability Focus
 
-The demo is designed to show:
+The platform is designed to show:
 
 - Request path across multiple services
 - Latency when payment delay is enabled
 - Error behavior when payment failure is enabled
 - Service-to-service traffic through Istio sidecars
 
-## Minimum Demo Checklist
+## Minimum Validation Checklist
 
 - `docker compose up --build` starts all services
 - `GET /products` returns product data
